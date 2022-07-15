@@ -6,24 +6,19 @@ global with sharing class WebhookDemo {
             RestRequest request = RestContext.request;
             RestResponse response = RestContext.response;
             const token = process.env.WHATSAPP_TOKEN;
-            const request = require("request"),
-            express = require("express"),
-            body_parser = require("body-parser"),
-            axios = require("axios").default,
+            const request = require('request'),
+            express = require('express'),
+            body_parser = require('body-parser'),
             app = express().use(body_parser.json()); // creates express http server
 
 // Sets server port and logs message on success
-app.listen(process.env.PORT || 1337, () => console.log("webhook is listening"));
-var received_updates = [];
-
-app.get('/', function(req, res) {
-  console.log(req);
+app.listen(process.env.PORT || 1337);
+List<String> received_updates = new List<String>();
   res.send('<pre>' + JSON.stringify(received_updates, null, 2) + '</pre>');
-});
+
 // Accepts POST requests at /webhook endpoint
-app.post("/webhook", (req, res) => {
-  // Parse the request body from the POST
-  let body = req.body;
+Http http = new Http();
+        HttpRequest req = new HttpRequest();
 
   // Check the Incoming webhook message
   console.log(JSON.stringify(req.body, null, 2));
@@ -37,65 +32,27 @@ app.post("/webhook", (req, res) => {
       req.body.entry[0].changes[0].value.messages &&
       req.body.entry[0].changes[0].value.messages[0]
     ) {
-      let phone_number_id =
-        req.body.entry[0].changes[0].value.metadata.phone_number_id;
-      let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
+      let phone_number_id = req.body.entry[0].changes[0].value.metadata.phone_number_id;
+      let from_id = wObj.entry[0].changes[0].value.contacts[0].wa_id; // extract the phone number from the webhook payload
       let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
-      axios({
-        method: "POST", // Required, HTTP method, a string, e.g. POST, GET
-        url:
-          "https://graph.facebook.com/v13.0/" +
-          phone_number_id +
-          "/messages?access_token=" +
-          token,
-        data: {
-          messaging_product: "whatsapp",
-          to: from,
-          text: { body: "Ack: " + "Message Recieved" },
-        },
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    
-    res.sendStatus(200);
+      
+        req.setEndpoint('https://graph.facebook.com/v13.0/108011801946097/messages');
+        req.setHeader('Content-Type', 'application/json');
+		req.setMethod('POST');
+        String body = '{"messaging_product": "whatsapp","to": "'+whatsappNo+'","text": {"body": "'+message+'"}}';
+        req.setBody(body);
+        String apiToken = 'EAAKqVA2lWNQBACDyCZCaPVgpPk8ddjXTZAwCZA52ZAUKSUGleiVP2LiYHqUHnugwL4ZCmKz75O5FT9Alhp5LhpL2TXMZBxOpBQZB5IcnUZAYkJSy4XVuviSlOueIlBkJdgIoKDymZAEm9EvN7v4GcRtbqpFrON6zMi7PvJZCzr5jgq73SqbicynbOgBZBmHKVwkjoKkZC1xH9KRN1gZDZD';
+        req.setHeader('Authorization', 'Bearer ' +apiToken);
+        HttpResponse response = http.send(req);
   } else {
     // Return a '404 Not Found' if event is not from a WhatsApp API
     res.sendStatus(404);
   }
-});
-
-// Accepts GET requests at the /webhook endpoint. You need this URL to setup webhook initially.
-// info on verification request payload: https://developers.facebook.com/docs/graph-api/webhooks/getting-started#verification-requests 
-app.get("/webhook", (req, res) => {
-  /**
-   * UPDATE YOUR VERIFY TOKEN
-   *This will be the Verify Token value when you set up webhook
-  **/
-  const verify_token = process.env.VERIFY_TOKEN;
-
-  // Parse params from the webhook verification request
-  let mode = req.query["hub.mode"];
-  let token = req.query["hub.verify_token"];
-  let challenge = req.query["hub.challenge"];
-
-  // Check if a token and mode were sent
-  if (mode && token) {
-    // Check the mode and token sent are correct
-    if (mode === "subscribe" && token === verify_token) {
-      // Respond with 200 OK and challenge token from the request
-      console.log("WEBHOOK_VERIFIED");
-      
-      res.status(200).send(challenge);
-    } else {
-      // Responds with '403 Forbidden' if verify tokens do not match
-      res.sendStatus(403);
-    }
-  }
-});
-app.listen();
-        }
+}
+}
         catch(Exception e){
             System.debug('Exception Happened:' +e.getMessage());
         }
-    }
-}
+      }
+    }    
+
